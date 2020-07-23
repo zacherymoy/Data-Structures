@@ -10,7 +10,7 @@ return elements in Last In First Out order.
 3. What is the difference between using an array vs. a linked list when 
    implementing a Stack?
 
-   The major difference between Array and Linked list regards to their structure.
+   The major difference between Array and Linked list regards to their structure...
 """
 class Node:
     def __init__(self, value, next=None):
