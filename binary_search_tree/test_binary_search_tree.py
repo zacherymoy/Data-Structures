@@ -1,110 +1,128 @@
-import unittest
-import random
-import sys
-import io
-from binary_search_tree import BSTNode
+"""
+Binary search trees are a data structure that enforce an ordering over 
+the data they store. That ordering in turn makes it a lot more efficient 
+at searching for a particular piece of data in the tree. 
+This part of the project comprises two days:
+1. Implement the methods `insert`, `contains`, `get_max`, and `for_each`
+   on the BSTNode class.
+2. Implement the `in_order_print`, `bft_print`, and `dft_print` methods
+   on the BSTNode class.
+"""
+class BSTNode:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
 
-class BinarySearchTreeTests(unittest.TestCase):
-    def setUp(self):
-        self.bst = BSTNode(5)
+    # Insert the given value into the tree
+    def insert(self, value):
+        # Check left
+        if value < self.value:
+            # node not found
+            if self.left is None:
+                self.left = BSTNode(value)
+            else: # node found
+                self.left.insert(value)
+        else: # go right
+            # node not found
+            if self.right is None:
+                self.right = BSTNode(value)
+            else:
+                self.right.insert(value)
 
-    def test_insert(self):
-        self.bst.insert(2)
-        self.bst.insert(3)
-        self.bst.insert(7)
-        self.bst.insert(6)
-        self.assertEqual(self.bst.left.right.value, 3)
-        self.assertEqual(self.bst.right.left.value, 6)
+
+    # Return True if the tree contains the value
+    # False if it does not
+    def contains(self, target):
+        if target == self.value:
+            return True
+        if target < self.value: # go left
+            if self.left is None:   # value not found
+                return False
+            else:
+                return self.left.contains(target)
+        else: # go right
+            if self.right is None:
+                return False
+            else:
+                return self.right.contains(target)
+
+    # Return the maximum value found in the tree
+    def get_max(self):
+        if self.right is None:
+            return self.value
+        else:
+            return self.right.get_max()
+
+    # Call the function `fn` on the value of each node
+    def for_each(self, fn):
+        # I'm gonna do this by using a depth-first search
+        # using recursion, because this is the lazier way
+        if self.left is not None:
+            self.left.for_each(fn)
+        if self.right is not None:
+            self.right.for_each(fn)
         
-    def test_handle_dupe_insert(self):
-        self.bst2 = BSTNode(1)
-        self.bst2.insert(1)
-        self.assertEqual(self.bst2.right.value, 1)
+        # apply the function
+        fn(self.value)
 
-    def test_contains(self):
-        self.bst.insert(2)
-        self.bst.insert(3)
-        self.bst.insert(7)
-        self.assertTrue(self.bst.contains(7))
-        self.assertFalse(self.bst.contains(8))
+    # Part 2 -----------------------
 
-    def test_get_max(self):
-        self.assertEqual(self.bst.get_max(), 5)
-        self.bst.insert(30)
-        self.assertEqual(self.bst.get_max(), 30)
-        self.bst.insert(300)
-        self.bst.insert(3)
-        self.assertEqual(self.bst.get_max(), 300)
+    # Print all the values in order from low to high
+    # Hint:  Use a recursive, depth first traversal
+    def in_order_print(self, node):
+        # recurse first
+        if node.left is not None:
+            node.in_order_print(node.left)
 
-    def test_for_each(self):
-        arr = []
-        cb = lambda x: arr.append(x)
+        print(node.value)
 
-        v1 = random.randint(1, 101)
-        v2 = random.randint(1, 101)
-        v3 = random.randint(1, 101)
-        v4 = random.randint(1, 101)
-        v5 = random.randint(1, 101)
+        if node.right is not None:
+            node.in_order_print(node.right)
 
-        self.bst.insert(v1)
-        self.bst.insert(v2)
-        self.bst.insert(v3)
-        self.bst.insert(v4)
-        self.bst.insert(v5)
+    # Print the value of every node, starting with the given node,
+    # in an iterative breadth first traversal
+    def bft_print(self, node):
+        # set up queue
+        queue = []
+        queue.append(node)
 
-        self.bst.for_each(cb)
+        while queue:
+            # first out
+            node = queue.pop(0)
 
-        self.assertTrue(5 in arr)
-        self.assertTrue(v1 in arr)
-        self.assertTrue(v2 in arr)
-        self.assertTrue(v3 in arr)
-        self.assertTrue(v4 in arr)
-        self.assertTrue(v5 in arr)
+            print(node.value)
 
-    def test_print_traversals(self):
-        # WARNING:  Tests are for Print()
-        # Debug calls to Print() in functions will cause failure
+            # enqueue next nodes
+            if node.left is not None:
+                queue.append(node.left)
+            if node.right is not None:
+                queue.append(node.right)
 
-        stdout_ = sys.stdout  # Keep previous value
-        sys.stdout = io.StringIO()
+    # Print the value of every node, starting with the given node,
+    # in an iterative depth first traversal
+    def dft_print(self, node):
+        stack = []
+        stack.append(node)
 
-        self.bst = BSTNode(1)
-        self.bst.insert(8)
-        self.bst.insert(5)
-        self.bst.insert(7)
-        self.bst.insert(6)
-        self.bst.insert(3)
-        self.bst.insert(4)
-        self.bst.insert(2)
+        while stack:
+            if node.left is not None:
+                stack.append(node.left)
+            if node.right is not None:
+                stack.append(node.right)
 
-        self.bst.in_order_print(self.bst)
+            print(node.value)
 
-        output = sys.stdout.getvalue()
-        self.assertEqual(output, "1\n2\n3\n4\n5\n6\n7\n8\n")
+            node = stack.pop()
+            
 
-        sys.stdout = io.StringIO()
-        self.bst.bft_print(self.bst)
-        output = sys.stdout.getvalue()
-        self.assertTrue(output == "1\n8\n5\n3\n7\n2\n4\n6\n" or
-                        output == "1\n8\n5\n7\n3\n6\n4\n2\n")
+    # Stretch Goals -------------------------
+    # Note: Research may be required
 
-        sys.stdout = io.StringIO()
-        self.bst.dft_print(self.bst)
-        output = sys.stdout.getvalue()
-        self.assertTrue(output == "1\n8\n5\n7\n6\n3\n4\n2\n" or
-                        output == "1\n8\n5\n3\n2\n4\n7\n6\n")
+    # Print Pre-order recursive DFT
+    def pre_order_dft(self, node):
+        pass
 
-        sys.stdout = io.StringIO()
-        self.bst.pre_order_dft(self.bst)
-        output = sys.stdout.getvalue()
-        self.assertEqual(output, "1\n8\n5\n3\n2\n4\n7\n6\n")
-
-        sys.stdout = io.StringIO()
-        self.bst.post_order_dft(self.bst)
-        output = sys.stdout.getvalue()
-        self.assertEqual(output, "2\n4\n3\n6\n7\n5\n8\n1\n")
-
-        sys.stdout = stdout_  # Restore stdout
-
-if __name__ == '__main__':
-    unittest.main()
+    # Print Post-order recursive DFT
+    def post_order_dft(self, node):
+        pass
